@@ -9,17 +9,19 @@ npm install tolw
 
 ## Usage:
 ````js
-const tolw = require("./index");
+const tolw = require("tolw");
 // initialise tolw
 tolw.init().then(() => {
   // have fun
-  let objFile = new Uint8Array(fs.readFileSync("./cube.obj", null));
+  let objFile = new Uint8Array(fs.readFileSync("./model.obj", null));
   let { attrib, shapes } = tolw.loadObj(objFile);
 });
 ````
 
 ## Example:
 ````js
+let vertices = [];
+let indices = [];
 for (let shape of shapes) {
   for (let index of shape.mesh.indices) {
     let pos = {
