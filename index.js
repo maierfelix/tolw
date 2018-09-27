@@ -127,19 +127,17 @@ function serialize(wasm) {
 
 let loaded = false;
 
-module.exports.init = function() {
+module.exports.init = function(resolve) {
   if (loaded) throw `Wasm module already initialized!`;
-  return new Promise(resolve => {
-    wasm.onRuntimeInitialized = async _ => {
-      api = {
-        loadObj: wasm.cwrap("loadObj", "number", ["number", "number"]),
-        allocateSpace: wasm.cwrap("allocateSpace", "number", ["number"])
-      };
-      loaded = true;
-      // tell user we're ready
-      resolve(true);
+  wasm.onRuntimeInitialized = _ => {
+    api = {
+      loadObj: wasm.cwrap("loadObj", "number", ["number", "number"]),
+      allocateSpace: wasm.cwrap("allocateSpace", "number", ["number"])
     };
-  });
+    loaded = true;
+    // tell user we're ready
+    resolve(true);
+  };
 };
 
 module.exports.loadObj = function(data) {
@@ -151,16 +149,6 @@ module.exports.loadObj = function(data) {
     let ret = api.loadObj(addr, buffer.byteLength);
     if (!ret) throw `Failed to load object file!`;
   }
-  // attr_t
-  let attrVertices = wasm["getAttribVertices"]();
-  let attrNormals = wasm["getAttribNormals"]();
-  let attrTexCoords = wasm["getAttribTexCoords"]();
-  let attrColors = wasm["getAttribColors"]();
-  // shape_t
-  let shapeCount = wasm["getShapeCount"]();
-  let shapeName = wasm["getShapeName"](0);
-  // mesh_t
-  let meshNumFaceVertices = wasm["getMeshNumFaceVertices"](0);
   let serialized = serialize(wasm);
   return serialized;
 };
