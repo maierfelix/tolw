@@ -2,8 +2,6 @@
 
 WebAssembly port of [tinyobjloader](https://github.com/syoyo/tinyobjloader)
 
-// No longer uses WebAssembly because of this stupid asynchronous instantiation
-
 ## Install:
 ````
 npm install tolw
@@ -48,4 +46,10 @@ for (let shape of shapes) {
     indices.push(indices.length);
   };
 };
+````
+
+## Build:
+
+````
+em++ --bind -o tolw.js tolw.cc -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NODEJS_CATCH_EXIT -O3
 ````
