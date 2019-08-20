@@ -100,7 +100,6 @@ module.exports.loadObj = function(data) {
   };
 
   wasm._free(addr);
-  api.freeMemoryAddr(addr);
 
   return out;
 };
