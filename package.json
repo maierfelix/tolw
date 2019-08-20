@@ -1,6 +1,6 @@
 {
   "name": "tolw",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "WebAssembly port of tinyobjloader",
   "main": "index.js",
   "scripts": {
