@@ -47,7 +47,8 @@ module.exports.loadObj = function(data) {
   let memAddr = api.loadObj(addr, data.byteLength);
   if (!memAddr) throw `Failed to load object file!`;
 
-  // create views on parsed data from js-side
+  // free file from wasm memory
+  wasm._free(addr);
 
   // read MemoryAddr struct from heap
   let memoryAddrStructSize = 16;
@@ -99,7 +100,10 @@ module.exports.loadObj = function(data) {
     indices: new Uint32Array(indicesView)
   };
 
-  wasm._free(addr);
+  // free memory addr struct
+  // we used this struct to make processed
+  // object data visisble to js
+  api.freeMemoryAddr(memAddr);
 
   return out;
 };

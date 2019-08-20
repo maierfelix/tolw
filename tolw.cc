@@ -43,6 +43,10 @@ struct membuf:std::streambuf {
 extern "C" {
   void EMSCRIPTEN_KEEPALIVE freeMemoryAddr(int addr) {
     MemoryAddr* mem = reinterpret_cast<MemoryAddr *>(addr);
+    mem->vertices->clear();
+    mem->normals->clear();
+    mem->uvs->clear();
+    mem->indices->clear();
     delete mem->vertices;
     delete mem->normals;
     delete mem->uvs;
@@ -73,8 +77,6 @@ extern "C" {
 
     membuf sbuf(input, input + len);
     std::istream stream(&sbuf);
-
-    std::cout << "input:" << len << std::endl;
 
     std::string err;
     std::string warn;
