@@ -1,10 +1,15 @@
 const wasm = require("./tolw");
 
-function writeBufferIntoWasmMemory(heap8, address, buffer) {
-  /*for (let ii = 0; ii < buffer.length; ++ii) {
-    heap8[address + ii] = buffer[ii];
-  };*/
-  heap8.set(buffer, address);
+function writeBufferIntoWasmMemory(heap8, address, data) {
+  // array view input
+  // might be a sub-view, so use byteOffset
+  if (ArrayBuffer.isView(data)) {
+    let {byteOffset, byteLength} = data;
+    heap8.set(new Uint8Array(data.buffer).subarray(byteOffset, byteOffset + byteLength), address);
+  // normal arraybuffer input
+  } else {
+    heap8.set(new Uint8Array(data), address);
+  }
 };
 
 // ignore emscripten's stupid global exception listener
@@ -17,8 +22,7 @@ module.exports.init = function() {
     wasm.onRuntimeInitialized = _ => {
       api = {
         loadObj: wasm.cwrap("loadObj", "number", ["number", "number"]),
-        allocateSpace: wasm.cwrap("allocateSpace", "number", ["number"]),
-        freeSpace: wasm.cwrap("freeSpace", "undefined", ["number"]),
+        freeMemoryAddr: wasm.cwrap("freeMemoryAddr", "undefined", ["number"])
       };
       loaded = true;
       // tell user we're ready
@@ -29,14 +33,18 @@ module.exports.init = function() {
 
 module.exports.loadObj = function(data) {
   if (!loaded) throw new Error("TOLW isn't initialized!");
-  let buffer = new Int8Array(data.buffer);
-  let addr = api.allocateSpace(buffer.byteLength);
+
+  if (!ArrayBuffer.isView(data) && !(data instanceof ArrayBuffer)) {
+    throw new TypeError(`Input data must be either of type 'ArrayBuffer' or 'ArrayBufferView'`);
+  }
+
+  let addr = wasm._malloc(data.byteLength);
 
   // write file into wasm memory
-  writeBufferIntoWasmMemory(wasm.HEAP8, addr, buffer);
+  writeBufferIntoWasmMemory(wasm.HEAP8, addr, data);
 
   // parse obj
-  let memAddr = api.loadObj(addr, buffer.byteLength);
+  let memAddr = api.loadObj(addr, data.byteLength);
   if (!memAddr) throw `Failed to load object file!`;
 
   // create views on parsed data from js-side
@@ -91,7 +99,8 @@ module.exports.loadObj = function(data) {
     indices: new Uint32Array(indicesView)
   };
 
-  api.freeSpace(addr);
+  wasm._free(addr);
+  api.freeMemoryAddr(addr);
 
   return out;
 };
