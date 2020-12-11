@@ -3,6 +3,10 @@
   "version": "0.1.8",
   "description": "WebAssembly port of tinyobjloader",
   "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    "require": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
